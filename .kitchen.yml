@@ -1,0 +1,43 @@
+---
+#<% require 'kitchen-sync' %>
+driver:
+  name: ec2
+  subnet_id: <%= ENV['AWS_SUBNET_ID'] %>
+  aws_ssh_key_id: <%= ENV['AWS_SSH_KEY_ID'] %>
+  region: <%= ENV['AWS_DEFAULT_REGION'] %>
+  iam_profile_name: aws-opsworks-ec2-role
+  availability_zone: a
+  instance_type: t2.small
+  require_chef_omnibus: true
+  security_group_ids:
+    - <%= ENV['AWS_SG_ID'] %>
+
+transport:
+  name: sftp
+  ssh_key: <%= ENV['AWS_SSH_KEY'] %>
+  username: ubuntu
+
+provisioner:
+  name: chef_zero
+
+platforms:
+  - name: ubuntu-14.04
+    run_list:
+      - recipe[apt]
+      - recipe[ecs_test::install_docker]
+    driver:
+      image_id: ami-fc11d4fc
+
+suites:
+  - name: default
+    run_list:
+      - recipe[opsworks_ecs::default]
+      - recipe[ecs_test::default]
+      - recipe[opsworks_ecs::agent]
+    attributes:
+      ecs:
+        config:
+          ECS_LOGFILE: /log/ecs-agent.log
+          ECS_LOGLEVEL: info
+          ECS_DATADIR: /data
+          ECS_CLUSTER: opsworks-ecs
