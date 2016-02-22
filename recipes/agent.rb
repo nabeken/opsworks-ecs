@@ -17,7 +17,7 @@
 # limitations under the License.
 
 docker_image 'amazon/amazon-ecs-agent' do
-  tag 'latest'
+  tag node['opsworks_ecs']['agent']['tag']
   action :pull
   notifies :redeploy, 'docker_container[ecs-agent]'
 end
